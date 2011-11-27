@@ -28,6 +28,7 @@ struct user
 	int	u_fsav[25];
 #define u_segflg
         /// flag for IO; user or kernel space
+        /// - rdwrで0に初期化する
 	char	u_segflg;
 #define u_error
         /// return error code
@@ -49,12 +50,15 @@ struct user
         /// :Gtags proc
 	int	u_procp;
 #define u_base
+        /// - rdwrで書き換える
         /// base address for IO
 	char	*u_base;
 #define u_count
+        /// - rdwrで書き換える
         /// bytes remaining for IO
 	char	*u_count;
 #define u_offset
+        /// - rdwrで書き換える
         /// offset in file for IO
 	char	*u_offset[2];
 #define u_cdir
@@ -95,6 +99,11 @@ struct user
 	int	u_uisd[16];
 #define u_ofile
         /// pointers to file structures of open files 
+        /// 0 stdin
+        /// 1 stdout
+        /// 2 stderr
+        /// 3 新しいファイル
+        /// 初期値では、15で最大
 	int	u_ofile[NOFILE];
 #define u_arg
         /// arguments to current system call */

@@ -7,9 +7,12 @@
 
 /// @brief
 /// ファイルIO関連のシステムコールを定義している
+/// プロセッサ優先度によるロックアンロックを行う必要はないか
+///
 ///
 
-/*
+/**
+ * @brief
  * read system call
  */
 read()
@@ -17,7 +20,8 @@ read()
 	rdwr(FREAD);
 }
 
-/*
+/**
+ * @brief
  * write system call
  */
 write()
@@ -25,7 +29,10 @@ write()
 	rdwr(FWRITE);
 }
 
-/*
+/**
+ * @brief
+ * @param[in,out] mode FREAD or FWRITE
+ *
  * common code for read and write calls:
  * check permissions, set base, count, and offset,
  * and switch out to readi, writei, or pipe code.
@@ -34,22 +41,33 @@ rdwr(mode)
 {
 	register *fp, m;
 
+        /// - ファイルディスクリプタの取得
 	m = mode;
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
 		return;
+
+        /// - modeとfpが一致しない場合、ERROR
 	if((fp->f_flag&m) == 0) {
 		u.u_error = EBADF;
 		return;
 	}
+        /// - system callの引数取得
+        ///   user構造体に設定する
 	u.u_base = u.u_arg[0];
 	u.u_count = u.u_arg[1];
 	u.u_segflg = 0;
+
 	if(fp->f_flag&FPIPE) {
+                /// - PIPEだったら、
+                ///   readp or writep
 		if(m==FREAD)
 			readp(fp); else
 			writep(fp);
 	} else {
+                /// - 普通のファイルだったら
+                ///   u_offsetにf_offsetを設定して、
+                ///   readi or writei
 		u.u_offset[1] = fp->f_offset[1];
 		u.u_offset[0] = fp->f_offset[0];
 		if(m==FREAD)
@@ -57,10 +75,12 @@ rdwr(mode)
 			writei(fp->f_inode);
 		dpadd(fp->f_offset, u.u_arg[1]-u.u_count);
 	}
+        /// ファイルに書き込んだサイズを書き込む
 	u.u_ar0[R0] = u.u_arg[1]-u.u_count;
 }
 
-/*
+/**
+ * @brief 既存のファイルを参照する場合
  * open system call
  */
 open()
@@ -71,13 +91,16 @@ open()
 	ip = namei(&uchar, 0);
 	if(ip == NULL)
 		return;
+        /// - ユーザプログラミング規約と内部データ表現の間にずれがあるので
 	u.u_arg[1]++;
+        /// - 0を指定して呼び出す
 	open1(ip, u.u_arg[1], 0);
 }
 
 /**
  * @brief
  * creat system call
+ *
  */
 creat()
 {
@@ -122,6 +145,7 @@ int *ip;
 	rip = ip;
 	m = mode;
 	if(trf != 2) {
+                /// check permission if FREAD --> IREAD
 		if(m&FREAD)
 			access(rip, IREAD);
 		if(m&FWRITE) {
@@ -143,9 +167,11 @@ int *ip;
 		goto out;
 	fp->f_flag = m&(FREAD|FWRITE);
 	fp->f_inode = rip;
+        /// 異常終了時のためのreserve
 	i = u.u_ar0[R0];
 
-        /// - 
+        /// - inodeをげっと
+        /// - 正常処理の場合、return
 	openi(rip, m&FWRITE);
 	if(u.u_error == 0)
 		return;
@@ -159,13 +185,16 @@ out:
 	iput(rip);
 }
 
-/*
+/**
+ * @brief
+ *
  * close system call
  */
 close()
 {
 	register *fp;
 
+        /// inodeのfpを取得
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
 		return;
@@ -173,11 +202,20 @@ close()
 	closef(fp);
 }
 
-/*
+/**
+ * @brief
+ * @param[in,out] tbuf
+ * @param[in,out] txtsiz or datsiz
+ * @param[in,out] 0 or 1 
  * seek system call
+ *
+ * @note
+ * u_arg system call argument
  */
 seek()
 {
+        /// 32bitの値を使いたい
+        /// idiom005
 	int n[2];
 	register *fp, t;
 

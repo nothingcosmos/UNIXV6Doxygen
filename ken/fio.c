@@ -1,4 +1,3 @@
-#
 /*
  */
 
@@ -10,7 +9,9 @@
 #include "../inode.h"
 #include "../reg.h"
 
-/*
+/**
+ * @brief u_ofileの配列添字から、idxのポインタをもらって返す
+ * @param[in,out] f
  * Convert a user supplied
  * file descriptor into a pointer
  * to a file structure.
@@ -32,7 +33,9 @@ bad:
 	return(NULL);
 }
 
-/*
+/**
+ * @brief
+ *
  * Internal form of close.
  * Decrement reference count on
  * file structure and call closei
@@ -46,18 +49,24 @@ int *fp;
 	register *rfp, *ip;
 
 	rfp = fp;
+        /// - fileがFPIPEだったら
 	if(rfp->f_flag&FPIPE) {
 		ip = rfp->f_inode;
 		ip->i_mode =& ~(IREAD|IWRITE);
 		wakeup(ip+1);
 		wakeup(ip+2);
 	}
+        /// - fileの参照カウントが1以下立った場合、
+        ///   inodeを開放するため、closeiをよぶ
 	if(rfp->f_count <= 1)
 		closei(rfp->f_inode, rfp->f_flag&FWRITE);
+        /// - fileの参照カウントをデクリメント
 	rfp->f_count--;
 }
 
-/*
+/**
+ * @brief
+ *
  * Decrement reference count on an
  * inode due to the removal of a
  * referencing file structure.
@@ -90,7 +99,8 @@ int *ip;
 	iput(rip);
 }
 
-/*
+/**
+ * @brief
  * openi called to allow handler
  * of special files to initialize and
  * validate before actual IO.
@@ -125,7 +135,8 @@ bad:
 	u.u_error = ENXIO;
 }
 
-/*
+/**
+ * @brief
  * Check mode permission on inode pointer.
  * Mode is READ, WRITE or EXEC.
  * In the case of WRITE, the

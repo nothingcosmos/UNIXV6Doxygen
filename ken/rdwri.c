@@ -9,6 +9,8 @@
 #include "../systm.h"
 
 /**
+ * @brief
+ *
  * Read the file corresponding to
  * the inode pointed at by the argument.
  * The actual read arguments are found
@@ -36,10 +38,17 @@ struct inode *aip;
 	}
 
 	do {
+                /// blknoを取得
 		lbn = bn = lshift(u.u_offset, -9);
+                /// maskする
 		on = u.u_offset[1] & 0777;
+                /// blockの境界を跨がらないものだけ取得する
+                /// 最大で512
 		n = min(512-on, u.u_count);
+                /// formatがIFBLKでなければ
 		if((ip->i_mode&IFMT) != IFBLK) {
+                        /// - Asm
+                        /// (arg1 - arg3) <= (arg2 - arg4)
 			dn = dpcmp(ip->i_size0&0377, ip->i_size1,
 				u.u_offset[0], u.u_offset[1]);
 			if(dn <= 0)
@@ -52,10 +61,12 @@ struct inode *aip;
 			dn = ip->i_addr[0];
 			rablock = bn+1;
 		}
+                /// read a headの場合
 		if (ip->i_lastr+1 == lbn)
 			bp = breada(dn, bn, rablock);
 		else
 			bp = bread(dn, bn);
+                /// read a headのフラグ補助
 		ip->i_lastr = lbn;
 		iomove(bp, on, n, B_READ);
 		brelse(bp);
@@ -63,6 +74,8 @@ struct inode *aip;
 }
 
 /**
+ * @brief
+ *
  * Write the file corresponding to
  * the inode pointed at by the argument.
  * The actual write arguments are found
@@ -99,21 +112,30 @@ struct inode *aip;
 			dn = ip->i_dev;
 		} else
 			dn = ip->i_addr[0];
+                /// - blockの全体を書く場合、そのまま
+                /// - blockの途中から書きたい場合、既存のものを読んでから、書き込みしなおす
 		if(n == 512) 
 			bp = getblk(dn, bn); else
 			bp = bread(dn, bn);
+
 		iomove(bp, on, n, B_WRITE);
+                /// 0777が0のときは、ブロック境界を跨いだ際、いままでの奴全部かいていいよという指示
 		if(u.u_error != 0)
 			brelse(bp); else
 		if ((u.u_offset[1]&0777)==0)
+                        /// 非同期
 			bawrite(bp); else
+                        /// 再割り当て時に立てる
 			bdwrite(bp);
+
+                /// ここはループの外に出していいんじゃない？
 		if(dpcmp(ip->i_size0&0377, ip->i_size1,
 		  u.u_offset[0], u.u_offset[1]) < 0 &&
 		  (ip->i_mode&(IFBLK&IFCHR)) == 0) {
 			ip->i_size0 = u.u_offset[0];
 			ip->i_size1 = u.u_offset[1];
 		}
+                /// inode has been modified
 		ip->i_flag =| IUPD;
 	} while(u.u_error==0 && u.u_count!=0);
 }
@@ -145,6 +167,8 @@ char *a, *b;
 }
 
 /**
+ * @brief 
+ *
  * Move 'an' bytes at byte location
  * &bp->b_addr[o] to/from (flag) the
  * user/kernel (u.segflg) area starting at u.base.
@@ -167,6 +191,7 @@ struct buf *bp;
 
 	n = an;
 	cp = bp->b_addr + o;
+        /// - u_segflgが0の場合
 	if(u.u_segflg==0 && ((n | cp | u.u_base)&01)==0) {
 		if (flag==B_WRITE)
 			cp = copyin(u.u_base, cp, n);
@@ -182,12 +207,14 @@ struct buf *bp;
 		return;
 	}
 	if (flag==B_WRITE) {
+                /// B_WRITEの場合
 		while(n--) {
 			if ((t = cpass()) < 0)
 				return;
 			*cp++ = t;
 		}
 	} else
+               /// B_WRITEでない場合
 		while (n--)
 			if(passc(*cp++) < 0)
 				return;

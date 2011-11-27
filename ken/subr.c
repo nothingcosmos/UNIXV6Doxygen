@@ -9,7 +9,9 @@
 #include "../buf.h"
 #include "../systm.h"
 
-/*
+/**
+ * @brief
+ *
  * Bmap defines the structure of file system storage
  * by returning the physical block number on a device given the
  * inode and the logical block number in a file.
@@ -31,11 +33,8 @@ int bn;
 	}
 
 	if((ip->i_mode&ILARG) == 0) {
-
-		/*
-		 * small file algorithm
-		 */
-
+                /// - small file algorithm
+                /// - 大きかったファイルが小さくなったパス
 		if((bn & ~7) != 0) {
 
 			/*
@@ -54,7 +53,10 @@ int bn;
 			ip->i_mode =| ILARG;
 			goto large;
 		}
+                /// nbの取得 あったら非0
 		nb = ip->i_addr[bn];
+                /// 新規でblockを取得する必要がある場合、
+                /// NULLの場合は、ERRORが発生した場合
 		if(nb == 0 && (bp = alloc(d)) != NULL) {
 			bdwrite(bp);
 			nb = bp->b_blkno;

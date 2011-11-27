@@ -76,6 +76,7 @@ psig:
 
 /**
  * @brief
+ *
  * Wake up all processes sleeping on chan.
  */
 wakeup(chan)

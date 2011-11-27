@@ -1,4 +1,3 @@
-#
 #include "../param.h"
 #include "../systm.h"
 #include "../user.h"
@@ -85,6 +84,7 @@ loop:
 
 /**
  * @brief
+ *
  * Decrement reference count of
  * an inode structure.
  * On the last reference,
@@ -97,26 +97,32 @@ struct inode *p;
 {
 	register *rp;
 
+        /// - inodeの参照カウントが1だったら、
 	rp = p;
 	if(rp->i_count == 1) {
+                /// - LOCKを立てて、優先して処理
 		rp->i_flag =| ILOCK;
 		if(rp->i_nlink <= 0) {
 			itrunc(rp);
 			rp->i_mode = 0;
 			ifree(rp->i_dev, rp->i_number);
 		}
+                /// inode上に記録されるアクセス時間と更新時間を更新する
 		iupdat(rp, time);
 		prele(rp);
 		rp->i_flag = 0;
 		rp->i_number = 0;
 	}
         /// - inodeの参照カウントを1減じる
-        /// - @todo prele
 	rp->i_count--;
+        /// - inodeのロックの開放
 	prele(rp);
 }
 
-/*
+/**
+ * @brief
+ * param [in,out] tm <-- time
+ *
  * Check accessed and update flags on
  * an inode structure.
  * If either is on, update the inode
@@ -130,6 +136,7 @@ int *tm;
 	register *ip1, *ip2, *rp;
 	int *bp, i;
 
+        /// - IUPDか、IACCでないならば、
 	rp = p;
 	if((rp->i_flag&(IUPD|IACC)) != 0) {
 		if(getfs(rp->i_dev)->s_ronly)
@@ -153,7 +160,9 @@ int *tm;
 	}
 }
 
-/*
+/**
+ * @brief
+ *
  * Free all the disk blocks associated
  * with the specified inode structure.
  * The blocks of the file are removed

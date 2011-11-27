@@ -12,6 +12,7 @@ struct	inode
 #define i_mode
 	int	i_mode;
 #define i_nlink
+        /// - 名前空間からの参照の個数
 	char	i_nlink;
 #define i_uid
 	char	i_uid;

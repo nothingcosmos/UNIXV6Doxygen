@@ -201,7 +201,9 @@ int *ip;
 	rp->i_flag =| ILOCK;
 }
 
-/*
+/**
+ * @brief
+ *
  * Unlock a pipe.
  * If WANT bit is on,
  * wakeup.
@@ -214,7 +216,10 @@ int *ip;
 	register *rp;
 
 	rp = ip;
+        /// ILOCKを落とす
 	rp->i_flag =& ~ILOCK;
+        /// IWANTだった場合
+        /// つまり欲しがっていたら、起こしてあげる
 	if(rp->i_flag&IWANT) {
 		rp->i_flag =& ~IWANT;
 		wakeup(rp);
