@@ -11,10 +11,23 @@
  */
 struct	file
 {
+#define f_flag
+        /// - flagsのマクロ参照。read/write/pipe
 	char	f_flag;
-	char	f_count;	/**< reference count */
-	int	f_inode;	/**< pointer to inode structure */
-	char	*f_offset[2];	/**< read/write character pointer */
+#define f_count
+        /// - reference count
+        /// - 0であれば割り当てられていないとみなす
+        /// - インクリメントする newproc, dup, falloc
+        /// - デクリメントする   closef, open1
+	char	f_count;
+#define f_inode
+        /// - pointer to inode structure
+        /// - inodeテーブルのエントリへのポインタ
+	int	f_inode;
+#define f_offset
+        /// - read/write character pointer
+        /// - ファイル内への文字への論理ポインタ
+	char	*f_offset[2];
 } file[NFILE];
 
 /* flags */

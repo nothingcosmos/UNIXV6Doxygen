@@ -22,6 +22,9 @@
 /// - 割り込み前の優先度に戻さないのが特徴である
 #define idiom003
 
+/// @deprecated
+/// - inodeは、ls -i /でディレクトリごとにinodeを出力できる
+#define idiom004
 
 
 /// @deprecated

@@ -1,10 +1,13 @@
-#
 #include "../param.h"
 #include "../systm.h"
 #include "../user.h"
 #include "../reg.h"
 #include "../file.h"
 #include "../inode.h"
+
+/// @brief
+/// ファイルIO関連のシステムコールを定義している
+///
 
 /*
  * read system call
@@ -72,7 +75,8 @@ open()
 	open1(ip, u.u_arg[1], 0);
 }
 
-/*
+/**
+ * @brief
  * creat system call
  */
 creat()
@@ -80,10 +84,15 @@ creat()
 	register *ip;
 	extern uchar;
 
+        /// - ucharは、ユーザプログラムのデータ領域から1文字ずつパス名を取り出す手続きの名前
 	ip = namei(&uchar, 1);
 	if(ip == NULL) {
+                /// - エラーが発生した
 		if(u.u_error)
 			return;
+                /// - その名前のファイルが存在しない
+                /// @attention
+                /// - スティッキービットの明示的なリセットに注意すること
 		ip = maknode(u.u_arg[1]&07777&(~ISVTX));
 		if (ip==NULL)
 			return;
@@ -92,10 +101,16 @@ creat()
 		open1(ip, FWRITE, 1);
 }
 
-/*
+/**
+ * @brief
  * common code for open and creat.
  * Check permissions, allocate an open file structure,
  * and call the device open routine if any.
+ *
+ * @param[in,out] ip
+ * @param[in,out] mode
+ * @param[in,out] trf 2<--指定したファイルが存在しない場合
+ *
  */
 open1(ip, mode, trf)
 int *ip;
@@ -117,21 +132,30 @@ int *ip;
 	}
 	if(u.u_error)
 		goto out;
+        /// - trfが0以外だったら、
+        ///   ファイルを生成しようとしていることになるため、
+        ///   前の内容を消去する
 	if(trf)
 		itrunc(rip);
+        /// - inodeのアンロックを行う
 	prele(rip);
 	if ((fp = falloc()) == NULL)
 		goto out;
 	fp->f_flag = m&(FREAD|FWRITE);
 	fp->f_inode = rip;
 	i = u.u_ar0[R0];
+
+        /// - 
 	openi(rip, m&FWRITE);
 	if(u.u_error == 0)
 		return;
+
+        /// - 異常処理
 	u.u_ofile[i] = NULL;
 	fp->f_count--;
 
 out:
+        /// - 異常があった場合、inodeエントリを開放する
 	iput(rip);
 }
 

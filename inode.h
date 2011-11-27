@@ -15,21 +15,52 @@
  * - file == inode
  * - fileを開ける際に、名前で開けるので、name->inodeへ変換する
  * - name <-> inodeとの対応表がある dir.h
+ * @note
+ * - リソースの獲得と開放の関係を以下に示す。
+ * リソース                   獲得       開放
+ * ディレクトリエントリ       namei      namei
+ * ディスクinodeエントリ      ialloc     ifree
+ * ディスク記憶装置ブロック   alloc      free
+ * コアinodeエントリ          iget       iput
+ * fileテーブルエントリ       falloc     closef
+ * u_ofileエントリ            ufalloc    close
  */
 struct	inode
 {
+#define i_flag
 	char	i_flag;
-	char	i_count;	/**< reference count */
-	int	i_dev;		/**< device where inode resides */
-	int	i_number;	/**< i number, 1-to-1 with device address */
+#define i_count
+        /// reference count
+	char	i_count;
+#define i_dev
+        /// device where inode resides
+	int	i_dev;
+#define i_number
+        /// i number, 1-to-1 with device address
+	int	i_number;
+#define i_mode
 	int	i_mode;
-	char	i_nlink;	/**< directory entries */
-	char	i_uid;		/**< owner */
-	char	i_gid;		/**< group of owner */
-	char	i_size0;	/**< most significant of size */
-	char	*i_size1;	/**< least sig */
-	int	i_addr[8];	/**< device addresses constituting file */
-	int	i_lastr;	/**< last logical block read (for read-ahead) */
+#define i_nlink
+        /// directory entries
+	char	i_nlink;
+#define i_uid
+        /// owner
+	char	i_uid;
+#define i_gid
+        /// group of owner
+	char	i_gid;
+#define i_size0
+        /// most significant of size
+	char	i_size0;
+#define i_size1
+        /// least sig
+	char	*i_size1;
+#define i_addr
+        /// device addresses constituting file
+	int	i_addr[8];
+#define i_lastr
+        /// last logical block read (for read-ahead)
+	int	i_lastr;
 } inode[NINODE];
 
 /** flags */

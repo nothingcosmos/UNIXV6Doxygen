@@ -1,11 +1,13 @@
-#
 #include "../param.h"
 #include "../inode.h"
 #include "../user.h"
 #include "../systm.h"
 #include "../buf.h"
 
-/*
+/**
+ * @brief
+ * ファイルパス名をinode参照に変換するために、ディレクトリを検索する処理
+ *
  * Convert a pathname into a pointer to
  * an inode. Note that the inode is locked.
  *
@@ -185,7 +187,7 @@ schar()
 	return(*u.u_dirp++ & 0377);
 }
 
-/*
+/**
  * Return the next character from the
  * user string pointed at by dirp.
  */

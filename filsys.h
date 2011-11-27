@@ -20,19 +20,41 @@
  */
 struct	filsys
 {
-  /// inodeの領域の大きさ
-	int	s_isize;	/**< size in blocks of I list */
-	int	s_fsize;	/**< size in blocks of entire volume */
-	int	s_nfree;	/**< number of in core free blocks (0-100) */
-	int	s_free[100];	/**< in core free blocks */
-  ///
-	int	s_ninode;	/**< number of in core I nodes (0-100) */
-	int	s_inode[100];	/**< in core free I nodes */
-  /// 対応するinodeを操作するためのlock
-	char	s_flock;	/**< lock during free list manipulation */
-	char	s_ilock;	/**< lock during I list manipulation */
-	char	s_fmod;		/**< super block modified flag */
-	char	s_ronly;	/**< mounted read-only flag */
-	int	s_time[2];	/**< current date of last update */
+#define s_isize
+        /// inodeの領域の大きさ
+        /// size in blocks of I list */
+	int	s_isize;
+#define s_isize
+        /// size in blocks of entire volume */
+	int	s_fsize;
+#define s_isize
+        /// number of in core free blocks (0-100) */
+	int	s_nfree;
+#define s_isize
+        /// in core free blocks */
+	int	s_free[100];
+#define s_isize
+        /// number of in core I nodes (0-100) */
+	int	s_ninode;
+#define s_isize
+        /// in core free I nodes */
+	int	s_inode[100];
+#define s_isize
+        /// lock during free list manipulation */
+        /// 対応するinodeを操作するためのlock
+	char	s_flock;
+#define s_isize
+        /// lock during I list manipulation */
+	char	s_ilock;
+#define s_isize
+        /// super block modified flag */
+	char	s_fmod;
+#define s_isize
+        /// mounted read-only flag */
+	char	s_ronly;
+#define s_isize
+        /// current date of last update */
+	int	s_time[2];
+#define s_isize
 	int	pad[50];
 };
