@@ -38,6 +38,7 @@
 #define idiom006
 
 /// @deprecated
+/// - inoとinodeが重複しているような気がする
 /// - i_mode         i_nlink
 /// - i_flag i_count i_dev
 #define idiom007
