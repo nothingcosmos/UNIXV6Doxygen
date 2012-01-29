@@ -149,6 +149,7 @@ badblock(afp, abn, dev)
 }
 
 /*
+ * @brief 新規のinodeを取得
  * Allocate an unused I node
  * on the specified device.
  * Used with file creation.

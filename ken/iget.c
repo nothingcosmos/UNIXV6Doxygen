@@ -6,7 +6,8 @@
 #include "../conf.h"
 #include "../buf.h"
 
-/*
+/**
+ *
  * Look up an inode by device,inumber.
  * If it is in core (in the inode structure),
  * honor the locking protocol.
@@ -206,8 +207,11 @@ int *ip;
 	rp->i_flag =| IUPD;
 }
 
-/*
+/**
  * Make a new file.
+ *
+ * @pre
+ * - nameiが呼ばれてその名前がないことが前提で動作する
  */
 maknode(mode)
 {
@@ -225,10 +229,15 @@ maknode(mode)
 	return(ip);
 }
 
-/*
+/**
+ *
  * Write a directory entry with
  * parameters left as side effects
  * to a call to namei.
+ * @param[in] inode
+ *
+ * namei() flag1で呼び出された場合
+ * どこにdirに書き込めばいいのかがわかっている
  */
 wdir(ip)
 int *ip;
@@ -237,6 +246,7 @@ int *ip;
 
 	u.u_dent.u_ino = ip->i_number;
 	cp1 = &u.u_dent.u_name[0];
+        /// ここでは帰納変数を2つ使っている
 	for(cp2 = &u.u_dbuf[0]; cp2 < &u.u_dbuf[DIRSIZ];)
 		*cp1++ = *cp2++;
 	u.u_count = DIRSIZ+2;

@@ -258,8 +258,9 @@ seek()
 	fp->f_offset[0] = n[0];
 }
 
-/*
+/**
  * link system call
+ *
  */
 link()
 {
@@ -269,29 +270,38 @@ link()
 	ip = namei(&uchar, 0);
 	if(ip == NULL)
 		return;
+        /// linkの上限
 	if(ip->i_nlink >= 127) {
 		u.u_error = EMLINK;
 		goto out;
 	}
+        /// ディレクトリへのlinkはスーパーユーザしか求めていない
 	if((ip->i_mode&IFMT)==IFDIR && !suser())
 		goto out;
-	/*
+	/**
 	 * unlock to avoid possibly hanging the namei
 	 */
 	ip->i_flag =& ~ILOCK;
+
+        /// - 第0引数 link元
+        /// - 第1引数 link先
 	u.u_dirp = u.u_arg[1];
 	xp = namei(&uchar, 1);
+        /// - link先の存在チェック
 	if(xp != NULL) {
 		u.u_error = EEXIST;
 		iput(xp);
 	}
 	if(u.u_error)
 		goto out;
+
+        /// - 違うデバイスだったら作れない
 	if(u.u_pdir->i_dev != ip->i_dev) {
 		iput(u.u_pdir);
 		u.u_error = EXDEV;
 		goto out;
 	}
+        /// - 新しいディスクエントリを書き込む
 	wdir(ip);
 	ip->i_nlink++;
 	ip->i_flag =| IUPD;
@@ -300,8 +310,11 @@ out:
 	iput(ip);
 }
 
-/*
+/**
+ *
  * mknod system call
+ *
+ * /devの下を作る際にも使う
  */
 mknod()
 {
@@ -317,9 +330,12 @@ mknod()
 	}
 	if(u.u_error)
 		return;
+
+        /// - 第1引数はmaknode
 	ip = maknode(u.u_arg[1]);
 	if (ip==NULL)
 		return;
+        /// - 第2引数を device address 
 	ip->i_addr[0] = u.u_arg[2];
 
 out:

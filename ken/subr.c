@@ -192,7 +192,7 @@ nulldev()
 {
 }
 
-/*
+/**
  * copy count words from from to to.
  */
 bcopy(from, to, count)

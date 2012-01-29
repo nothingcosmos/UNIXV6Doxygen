@@ -17,6 +17,14 @@
  * flag = 0 if name is sought
  *	1 if name is to be created
  *	2 if name is to be deleted
+ *
+ * @param[in] func 関数ポインタ
+ * @param[in] flag
+ *
+ *
+ * パス名は、/から始まるか、
+ * カレントディレクトリから
+ * カレントディレクトリの..は自分を示す
  */
 namei(func, flag)
 int (*func)();
@@ -26,24 +34,31 @@ int (*func)();
 	register char *cp;
 	int eo, *bp;
 
-	/*
+	/**
 	 * If name starts with '/' start from
 	 * root; otherwise start from current dir.
 	 */
 
+        /// - ルートから始まるかの判定
 	dp = u.u_cdir;
 	if((c=(*func)()) == '/')
 		dp = rootdir;
+
+        /// - inodeを検索する
 	iget(dp->i_dev, dp->i_number);
+
+        /// - ////と続いていたら飛ばす
 	while(c == '/')
 		c = (*func)();
+
+        /// - エラー処理
 	if(c == '\0' && flag != 0) {
 		u.u_error = ENOENT;
 		goto out;
 	}
 
 cloop:
-	/*
+	/**
 	 * Here dp contains pointer
 	 * to last component matched.
 	 */
@@ -53,7 +68,7 @@ cloop:
 	if(c == '\0')
 		return(dp);
 
-	/*
+	/**
 	 * If there is another component,
 	 * dp must be a directory and
 	 * must have x permission.
@@ -63,14 +78,18 @@ cloop:
 		u.u_error = ENOTDIR;
 		goto out;
 	}
+
+        /// - permissionのチェック
 	if(access(dp, IEXEC))
 		goto out;
 
-	/*
+	/**
 	 * Gather up name into
 	 * users' dir buffer.
 	 */
 
+        /// - 名前をユーザのディレクトリバッファに集める
+        /// - u.u_dbufに書き込みを行う
 	cp = &u.u_dbuf[0];
 	while(c!='/' && c!='\0' && u.u_error==0) {
 		if(cp < &u.u_dbuf[DIRSIZ])
@@ -84,14 +103,16 @@ cloop:
 	if(u.u_error)
 		goto out;
 
-	/*
+	/**
 	 * Set up to search a directory.
 	 */
-
+        /// - カーネル空間に名前を持ってくるために必要な処理 ???
 	u.u_offset[1] = 0;
 	u.u_offset[0] = 0;
 	u.u_segflg = 1;
 	eo = 0;
+        /// 今から読むディレクトリのファイル数をカウントする。
+        /// - i_size1はディレクトリのサイズのはず
 	u.u_count = ldiv(dp->i_size1, DIRSIZ+2);
 	bp = NULL;
 
@@ -132,7 +153,7 @@ eloop:
 			bmap(dp, ldiv(u.u_offset[1], 512)));
 	}
 
-	/*
+	/**
 	 * Note first empty directory slot
 	 * in eo for possible creat.
 	 * String compare the directory entry
@@ -140,19 +161,24 @@ eloop:
 	 * If they do not match, go back to eloop.
 	 */
 
+        /// - eoはempty offset 空き場所を保存しておく
 	bcopy(bp->b_addr+(u.u_offset[1]&0777), &u.u_dent, (DIRSIZ+2)/2);
 	u.u_offset[1] =+ DIRSIZ+2;
 	u.u_count--;
 	if(u.u_dent.u_ino == 0) {
+                /// - eoが0は、途中に空きエントリがなかった場合
 		if(eo == 0)
 			eo = u.u_offset[1];
 		goto eloop;
 	}
+        /// 文字列の比較を、u_nameとu_dbufを先頭から1文字ずつ行う
+        /// もし異なれば、eloopへ戻る
+        /// レジスタ変数をcpだけ使いたいから
 	for(cp = &u.u_dbuf[0]; cp < &u.u_dbuf[DIRSIZ]; cp++)
 		if(*cp != cp[u.u_dent.u_name - u.u_dbuf])
 			goto eloop;
 
-	/*
+	/**
 	 * Here a component matched in a directory.
 	 * If there is more pathname, go back to
 	 * cloop, otherwise return.
@@ -160,7 +186,9 @@ eloop:
 
 	if(bp != NULL)
 		brelse(bp);
+        /// 削除時の処理
 	if(flag==2 && c=='\0') {
+                /// IWRITE権限のチェック
 		if(access(dp, IWRITE))
 			goto out;
 		return(dp);
@@ -180,6 +208,7 @@ out:
 /*
  * Return the next character from the
  * kernel string pointed at by dirp.
+ * 関数ポインタでnameiの引数に渡される
  */
 schar()
 {
@@ -190,6 +219,7 @@ schar()
 /**
  * Return the next character from the
  * user string pointed at by dirp.
+ * 関数ポインタでnameiの引数に渡される
  */
 uchar()
 {

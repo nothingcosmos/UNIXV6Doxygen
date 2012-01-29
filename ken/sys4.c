@@ -96,19 +96,23 @@ nice()
 	u.u_procp->p_nice = n;
 }
 
-/*
+/**
  * Unlink system call.
  * panic: unlink -- "cannot happen"
+ *
  */
 unlink()
 {
 	register *ip, *pp;
 	extern uchar;
 
+        /// - nameiを削除フラグで呼び出す
 	pp = namei(&uchar, 2);
 	if(pp == NULL)
 		return;
+        /// - ILOCKフラグを落とすだけ
 	prele(pp);
+        /// - 削除しようとしている親ディレクトリが帰ってくる
 	ip = iget(pp->i_dev, u.u_dent.u_ino);
 	if(ip == NULL)
 		panic("unlink -- iget");

@@ -32,6 +32,7 @@ struct user
 	char	u_segflg;
 #define u_error
         /// return error code
+        /// いろんなところでerrorのコードを設定して後で参照
 	char	u_error;
 #define u_uid
         /// effective user id
@@ -50,15 +51,15 @@ struct user
         /// :Gtags proc
 	int	u_procp;
 #define u_base
-        /// - rdwrで書き換える
+        /// - rdwr()で書き換える
         /// base address for IO
 	char	*u_base;
 #define u_count
-        /// - rdwrで書き換える
+        /// - rdwr()で書き換える
         /// bytes remaining for IO
 	char	*u_count;
 #define u_offset
-        /// - rdwrで書き換える
+        /// - rdwr()で書き換える
         /// offset in file for IO
 	char	*u_offset[2];
 #define u_cdir
@@ -66,6 +67,8 @@ struct user
 	int	*u_cdir;
 #define u_dbuf
         /// current pathname component
+        /// nameiで参照し、書き込みを行う。
+        /// nameiでだけ参照するわけではなく、iget.c:wdirでもみる
 	char	u_dbuf[DIRSIZ];
 #define u_dirp
         /// current pointer to inode

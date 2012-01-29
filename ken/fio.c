@@ -136,7 +136,7 @@ bad:
 }
 
 /**
- * @brief
+ * @brief 権限のチェック
  * Check mode permission on inode pointer.
  * Mode is READ, WRITE or EXEC.
  * In the case of WRITE, the
@@ -150,6 +150,8 @@ bad:
  * permissions except for EXEC where
  * at least one of the EXEC bits must
  * be on.
+ *
+ * @param[in] aip 対象のinode
  */
 access(aip, mode)
 int *aip;
@@ -158,16 +160,20 @@ int *aip;
 
 	ip = aip;
 	m = mode;
+        /// - IWRITEのチェック
 	if(m == IWRITE) {
+                /// - readonlyでないか
 		if(getfs(ip->i_dev)->s_ronly != 0) {
 			u.u_error = EROFS;
 			return(1);
 		}
+                /// - ITEXTだったら、、
 		if(ip->i_flag & ITEXT) {
 			u.u_error = ETXTBSY;
 			return(1);
 		}
 	}
+        /// 無駄なファイルの抑止
 	if(u.u_uid == 0) {
 		if(m == IEXEC && (ip->i_mode & 
 			(IEXEC | (IEXEC>>3) | (IEXEC>>6))) == 0)
