@@ -9,7 +9,8 @@
 #include "../file.h"
 #include "../reg.h"
 
-/*
+/**
+ * @brief
  * Max allowable buffering per pipe.
  * This is also the max size of the
  * file created to implement the pipe.
@@ -19,7 +20,8 @@
  */
 #define	PIPSIZ	4096
 
-/*
+/**
+ * @brief pipeを起動する
  * The sys-pipe entry.
  * Allocate an inode on the root device.
  * Allocate 2 file structures.
@@ -30,15 +32,21 @@ pipe()
 	register *ip, *rf, *wf;
 	int r;
 
+        // rootdev inode 確保(system call ialloc)
+        // iallocで、incoreかつdisk上はリザーブしている。なぜか
+        //   deviceにリザーブするのは、存在をユニークにしたいため
+        //   一意性の確認
 	ip = ialloc(rootdev);
 	if(ip == NULL)
 		return;
+        // (system call falloc)
 	rf = falloc();
 	if(rf == NULL) {
 		iput(ip);
 		return;
 	}
 	r = u.u_ar0[R0];
+        // (system call falloc)
 	wf = falloc();
 	if(wf == NULL) {
 		rf->f_count = 0;
@@ -46,18 +54,26 @@ pipe()
 		iput(ip);
 		return;
 	}
+        // swap R0 to R1
+        //   r  <- R0
+        //   R1 <- R0
+        //   R0 <- r
 	u.u_ar0[R1] = u.u_ar0[R0];
 	u.u_ar0[R0] = r;
+        // write
 	wf->f_flag = FWRITE|FPIPE;
 	wf->f_inode = ip;
+        // read
 	rf->f_flag = FREAD|FPIPE;
 	rf->f_inode = ip;
+        // ip
 	ip->i_count = 2;
 	ip->i_flag = IACC|IUPD;
 	ip->i_mode = IALLOC;
 }
 
-/*
+/**
+ * @brief pipeを読み込む
  * Read call directed to a pipe.
  */
 readp(fp)
@@ -115,7 +131,8 @@ loop:
 	prele(ip);
 }
 
-/*
+/**
+ * @brief pipeへ書き込む
  * Write call directed to a pipe.
  */
 writep(fp)
@@ -183,7 +200,8 @@ loop:
 	goto loop;
 }
 
-/*
+/**
+ * @brief
  * Lock a pipe.
  * If its already locked,
  * set the WANT bit and sleep.
@@ -203,7 +221,6 @@ int *ip;
 
 /**
  * @brief
- *
  * Unlock a pipe.
  * If WANT bit is on,
  * wakeup.

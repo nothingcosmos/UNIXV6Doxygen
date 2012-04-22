@@ -144,7 +144,8 @@ struct tty *atp;
 	spl0();
 }
 
-/*
+/**
+ * @brief cfree
  * Initialize clist by freeing all character blocks, then count
  * number of character devices. (Once-only routine)
  */
@@ -154,6 +155,7 @@ cinit()
 	register struct cblock *cp;
 	register struct cdevsw *cdp;
 
+        // cfreeリストを走査し、
 	ccp = cfree;
 	for (cp=(ccp+07)&~07; cp <= &cfree[NCLIST-1]; cp++) {
 		cp->c_next = cfreelist;
@@ -165,7 +167,8 @@ cinit()
 	nchrdev = ccp;
 }
 
-/*
+/**
+ * @brief
  * flush all TTY queues
  */
 flushtty(atp)

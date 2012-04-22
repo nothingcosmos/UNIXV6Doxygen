@@ -155,6 +155,9 @@ struct user
 	int	u_cstime[2];
 #define u_ar0
         /// address of users saved R0 
+        /// ar0[R0]とかar0[R1]とかいう見方をする。
+        /// @note
+        /// - pipe()では、R0とR1に、pipeで生成したユーザファイル識別子を設定して返す。
 	int	*u_ar0;
 #define u_prof
         /// profile arguments 

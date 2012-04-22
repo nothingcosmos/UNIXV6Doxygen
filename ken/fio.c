@@ -245,7 +245,8 @@ ufalloc()
 	return(-1);
 }
 
-/*
+/**
+ * @brief
  * Allocate a user file descriptor
  * and a file structure.
  * Initialize the descriptor
